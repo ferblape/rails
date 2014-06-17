@@ -2374,7 +2374,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       scope :constraints => { :id => /\d{4}/ } do
         resources :movies do
-          resources :reviews
+          resources :reviews, :constraints => { :id => /0\d{3}/ }
           resource :trailer
         end
       end
@@ -2411,6 +2411,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/movies/00001/trailer'
     assert_equal 'Not Found', @response.body
     assert_raises(ActionController::UrlGenerationError){ movie_trailer_path(:movie_id => '00001') }
+
+    get '/movies/00001/reviews/0001'
+    assert_equal 'Not Found', @response.body
+    assert_raises(ActionController::UrlGenerationError){ movie_reviews_path(:movie_id => '00001', :id => '0001') }
   end
 
   def test_only_should_be_read_from_scope

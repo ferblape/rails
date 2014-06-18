@@ -2417,6 +2417,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ActionController::UrlGenerationError){ movie_reviews_path(:movie_id => '00001', :id => '0001') }
   end
 
+  def test_constraints_are_merged_from_scope_for_callable_constraints
+    draw do
+      scope :constraints => lambda { |params, req| req.subdomain.present? } do
+        resources :movies do
+          resources :reviews, :constraints => lambda { |params, req| params[:id].to_i < 100 }
+        end
+      end
+    end
+
+    get 'http://example.com/movies/1/reviews/1'
+    assert_response :missing
+  end
+
   def test_only_should_be_read_from_scope
     draw do
       scope :only => [:index, :show] do
